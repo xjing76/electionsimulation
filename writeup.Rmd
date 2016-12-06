@@ -2,9 +2,7 @@
 title: "Simulation of Election Data with Miltilevel Model"
 author: "Jing Xie,Yuxin Zou"
 date: "12/5/2016"
-output:
-  md_document:
-    variant: markdown_github
+output: html_document
 ---
 
 #Summary
@@ -29,16 +27,16 @@ head(election)
 
 # Linear  model
 
-We first tried simple OLS model for our prediction. 
+We first tried simple OLS model for our pred
 
-$headothead = \beta_0 + \beta_1* date + \beta_2 * pctRep08+\beta_3 * pctRep12+\beta_4 *id + \epsilon$
+$headothead = \beta_0 + \beta_1* date + \beta_2 * pctRep08+\beta_3 * pctRep12+\beta_{4i} *id + \epsilon$
 
 
 
 ```{r, include = FALSE}
 library(arm)
 library(stargazer)
-lm <- lm(DemPctHead2Head~date+pctRep08+pctRep12+id,data = election)
+lm <- lm(DemPctHead2Head~date+pctRep08+pctRep12+factor(id),data = election)
 summary(lm)
 ```
 
@@ -47,8 +45,7 @@ summary(lm)
 
 $headothead =  \beta_1*p08 + \beta_2*p12 +\alpha_{1i} * time +\alpha_{0i}+ \beta_0+\epsilon$
 
-
-$\alpha_{1i} \sim  N(\beta_{3i},\sigma_{\alpha_1})$
+$\alpha_{1i} \sim N(\beta_{3i},\sigma_{\alpha_1})$
 
 $\alpha_{0i} \sim N(0,\sigma_{\alpha_0})$
 
@@ -58,7 +55,7 @@ summary(fit.cov1)
 ```
 
 ```{r, echo=FALSE,results = "asis"}
-stargazer(fit.cov1,lm, title="GLM Regression Results",type = "html")
+stargazer(fit.cov1,lm, title="GLM Regression Results",type = "html",omit = "factor*")
 ```
 
 

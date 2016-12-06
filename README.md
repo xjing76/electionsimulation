@@ -50,56 +50,181 @@ There is a sneek peak of the data that we used.
 Linear model
 ============
 
-We first tried simple OLS model for our prediction.
+We first tried simple OLS model for our prediction. We did a very simple OLS with fixed effect for each State
 
-\(headothead = \beta_0 + \beta_1* date + \beta_2 * pctRep08+\beta_3 * pctRep12+\beta_4 *id + \epsilon\)
+``` {.r}
+lm <- lm(DemPctHead2Head~date+pctRep08+pctRep12+factor(id),data = election)
+```
 
 GLM model
 =========
 
-![](latex-image-1.png) ![](latex-image-2.png) ![](latex-image-3.png)
+\(headothead = \beta_1*p08 + \beta_2*p12 +\alpha_{1i} * time +\alpha_{0i}+ \beta_0+\epsilon\)
 
-GLM Regression Results
-======================
+\(\alpha_{1i} \sim N(\beta_{3i},\sigma_{\alpha_1})\)
 
-                             Dependent variable:          
-                    --------------------------------------
-                               DemPctHead2Head            
-                       linear               OLS           
-                    mixed-effects                         
-                         (1)                (2)           
+\(\alpha_{0i} \sim N(0,\sigma_{\alpha_0})\)
 
-<table>
-<colgroup>
-<col width="80%" />
-</colgroup>
-<tbody>
-<tr class="odd">
-<td align="left">I(date/365) -0.013 (0.009)</td>
-</tr>
-<tr class="even">
-<td align="left">date -0.0001*** (0.00002)</td>
-</tr>
-<tr class="odd">
-<td align="left">pctRep08 -0.001 -0.003*** (0.002) (0.001)</td>
-</tr>
-<tr class="even">
-<td align="left">pctRep12 -0.008*** -0.005*** (0.002) (0.001)</td>
-</tr>
-<tr class="odd">
-<td align="left">id 0.0004*** (0.0001)</td>
-</tr>
-<tr class="even">
-<td align="left">Constant 0.509*** 0.498*** (0.004) (0.003)</td>
-</tr>
-</tbody>
+    ## Linear mixed model fit by REML ['lmerMod']
+    ## Formula: 
+    ## DemPctHead2Head ~ I(date/365) + pctRep08 + pctRep12 + (I(date/365) |  
+    ##     id)
+    ##    Data: election
+    ##  Subset: date > -250
+    ## 
+    ## REML criterion at convergence: -3942.2
+    ## 
+    ## Scaled residuals: 
+    ##     Min      1Q  Median      3Q     Max 
+    ## -4.0654 -0.6307 -0.0215  0.5632  3.5214 
+    ## 
+    ## Random effects:
+    ##  Groups   Name        Variance  Std.Dev. Corr 
+    ##  id       (Intercept) 0.0008007 0.02830       
+    ##           I(date/365) 0.0014540 0.03813  -0.01
+    ##  Residual             0.0007260 0.02695       
+    ## Number of obs: 945, groups:  id, 50
+    ## 
+    ## Fixed effects:
+    ##               Estimate Std. Error t value
+    ## (Intercept)  0.5091407  0.0043049  118.27
+    ## I(date/365) -0.0126199  0.0090939   -1.39
+    ## pctRep08    -0.0006595  0.0020353   -0.32
+    ## pctRep12    -0.0077717  0.0018749   -4.15
+    ## 
+    ## Correlation of Fixed Effects:
+    ##             (Intr) I(/365 pctR08
+    ## I(date/365)  0.174              
+    ## pctRep08     0.055  0.001       
+    ## pctRep12    -0.078 -0.001 -0.976
+
+<table style="text-align:center"><caption>
+<strong>GLM Regression Results</strong>
+</caption>
+<tr><td colspan="3" style="border-bottom: 1px solid black"></td></tr><tr><td style="text-align:left"></td><td colspan="2">
+<em>Dependent variable:</em>
+</td></tr>
+<tr><td></td><td colspan="2" style="border-bottom: 1px solid black"></td></tr>
+<tr><td style="text-align:left"></td><td colspan="2">
+DemPctHead2Head
+</td></tr>
+<tr><td style="text-align:left"></td><td>
+<em>linear</em>
+</td><td>
+<em>OLS</em>
+</td></tr>
+<tr><td style="text-align:left"></td><td>
+<em>mixed-effects</em>
+</td><td>
+<em></em>
+</td></tr>
+<tr><td style="text-align:left"></td><td>
+(1)
+</td><td>
+(2)
+</td></tr>
+<tr><td colspan="3" style="border-bottom: 1px solid black"></td></tr><tr><td style="text-align:left">
+I(date/365)
+</td><td>
+-0.013
+</td><td></td></tr>
+<tr><td style="text-align:left"></td><td>
+(0.009)
+</td><td></td></tr>
+<tr><td style="text-align:left"></td><td></td><td></td></tr>
+<tr><td style="text-align:left">
+date
+</td><td></td><td>
+-0.00003<sup>\*\*</sup>
+</td></tr>
+<tr><td style="text-align:left"></td><td></td><td>
+(0.00002)
+</td></tr>
+<tr><td style="text-align:left"></td><td></td><td></td></tr>
+<tr><td style="text-align:left">
+pctRep08
+</td><td>
+-0.001
+</td><td>
+-0.002
+</td></tr>
+<tr><td style="text-align:left"></td><td>
+(0.002)
+</td><td>
+(0.007)
+</td></tr>
+<tr><td style="text-align:left"></td><td></td><td></td></tr>
+<tr><td style="text-align:left">
+pctRep12
+</td><td>
+-0.008<sup>\*\*\*</sup>
+</td><td>
+-0.009
+</td></tr>
+<tr><td style="text-align:left"></td><td>
+(0.002)
+</td><td>
+(0.006)
+</td></tr>
+<tr><td style="text-align:left"></td><td></td><td></td></tr>
+<tr><td style="text-align:left">
+Constant
+</td><td>
+0.509<sup>\*\*\*</sup>
+</td><td>
+0.514<sup>\*\*\*</sup>
+</td></tr>
+<tr><td style="text-align:left"></td><td>
+(0.004)
+</td><td>
+(0.006)
+</td></tr>
+<tr><td style="text-align:left"></td><td></td><td></td></tr>
+<tr><td colspan="3" style="border-bottom: 1px solid black"></td></tr><tr><td style="text-align:left">
+Observations
+</td><td>
+945
+</td><td>
+945
+</td></tr>
+<tr><td style="text-align:left">
+R<sup>2</sup>
+</td><td></td><td>
+0.867
+</td></tr>
+<tr><td style="text-align:left">
+Adjusted R<sup>2</sup>
+</td><td></td><td>
+0.859
+</td></tr>
+<tr><td style="text-align:left">
+Log Likelihood
+</td><td>
+1,971.102
+</td><td></td></tr>
+<tr><td style="text-align:left">
+Akaike Inf. Crit.
+</td><td>
+-3,926.203
+</td><td></td></tr>
+<tr><td style="text-align:left">
+Bayesian Inf. Crit.
+</td><td>
+-3,887.394
+</td><td></td></tr>
+<tr><td style="text-align:left">
+Residual Std. Error
+</td><td></td><td>
+0.028 (df = 894)
+</td></tr>
+<tr><td style="text-align:left">
+F Statistic
+</td><td></td><td>
+116.464<sup>\*\*\*</sup> (df = 50; 894)
+</td></tr>
+<tr><td colspan="3" style="border-bottom: 1px solid black"></td></tr><tr><td style="text-align:left">
+<em>Note:</em>
+</td><td colspan="2" style="text-align:right">
+<sup>*</sup>p\<0.1; <sup>**</sup>p\<0.05; <sup>***</sup>p\<0.01
+</td></tr>
 </table>
-
-Observations 945 945
-R2 0.746
-Adjusted R2 0.745
-Log Likelihood 1,971.102
-Akaike Inf. Crit. -3,926.203
-Bayesian Inf. Crit. -3,887.394
-Residual Std. Error 0.037 (df = 940)
-F Statistic 688.940\*\*\* (df = 4; 940) ========================================================== Note: *p\<0.1; **p\<0.05; ***p\<0.01

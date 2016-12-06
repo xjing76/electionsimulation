@@ -57,148 +57,49 @@ We first tried simple OLS model for our prediction.
 GLM model
 =========
 
-\(headothead = \beta_1*p08 + \beta_2*p12 +\alpha_{1i} * time +\alpha_{0i}+ \beta_0+\epsilon\)
+![](latex-image-1.png) ![](latex-image-2.png) ![](latex-image-3.png)
 
-\(\alpha_{1i} \sim N(\beta_{3i},\sigma_{\alpha_1})\)
+GLM Regression Results
+======================
 
-\(\alpha_{0i} \sim N(0,\sigma_{\alpha_0})\)
+                             Dependent variable:          
+                    --------------------------------------
+                               DemPctHead2Head            
+                       linear               OLS           
+                    mixed-effects                         
+                         (1)                (2)           
 
-<table style="text-align:center"><caption>
-<strong>GLM Regression Results</strong>
-</caption>
-<tr><td colspan="3" style="border-bottom: 1px solid black"></td></tr><tr><td style="text-align:left"></td><td colspan="2">
-<em>Dependent variable:</em>
-</td></tr>
-<tr><td></td><td colspan="2" style="border-bottom: 1px solid black"></td></tr>
-<tr><td style="text-align:left"></td><td colspan="2">
-DemPctHead2Head
-</td></tr>
-<tr><td style="text-align:left"></td><td>
-<em>linear</em>
-</td><td>
-<em>OLS</em>
-</td></tr>
-<tr><td style="text-align:left"></td><td>
-<em>mixed-effects</em>
-</td><td>
-<em></em>
-</td></tr>
-<tr><td style="text-align:left"></td><td>
-(1)
-</td><td>
-(2)
-</td></tr>
-<tr><td colspan="3" style="border-bottom: 1px solid black"></td></tr><tr><td style="text-align:left">
-I(date/365)
-</td><td>
--0.013
-</td><td></td></tr>
-<tr><td style="text-align:left"></td><td>
-(0.009)
-</td><td></td></tr>
-<tr><td style="text-align:left"></td><td></td><td></td></tr>
-<tr><td style="text-align:left">
-date
-</td><td></td><td>
--0.0001<sup>\*\*\*</sup>
-</td></tr>
-<tr><td style="text-align:left"></td><td></td><td>
-(0.00002)
-</td></tr>
-<tr><td style="text-align:left"></td><td></td><td></td></tr>
-<tr><td style="text-align:left">
-pctRep08
-</td><td>
--0.001
-</td><td>
--0.003<sup>\*\*\*</sup>
-</td></tr>
-<tr><td style="text-align:left"></td><td>
-(0.002)
-</td><td>
-(0.001)
-</td></tr>
-<tr><td style="text-align:left"></td><td></td><td></td></tr>
-<tr><td style="text-align:left">
-pctRep12
-</td><td>
--0.008<sup>\*\*\*</sup>
-</td><td>
--0.005<sup>\*\*\*</sup>
-</td></tr>
-<tr><td style="text-align:left"></td><td>
-(0.002)
-</td><td>
-(0.001)
-</td></tr>
-<tr><td style="text-align:left"></td><td></td><td></td></tr>
-<tr><td style="text-align:left">
-id
-</td><td></td><td>
-0.0004<sup>\*\*\*</sup>
-</td></tr>
-<tr><td style="text-align:left"></td><td></td><td>
-(0.0001)
-</td></tr>
-<tr><td style="text-align:left"></td><td></td><td></td></tr>
-<tr><td style="text-align:left">
-Constant
-</td><td>
-0.509<sup>\*\*\*</sup>
-</td><td>
-0.498<sup>\*\*\*</sup>
-</td></tr>
-<tr><td style="text-align:left"></td><td>
-(0.004)
-</td><td>
-(0.003)
-</td></tr>
-<tr><td style="text-align:left"></td><td></td><td></td></tr>
-<tr><td colspan="3" style="border-bottom: 1px solid black"></td></tr><tr><td style="text-align:left">
-Observations
-</td><td>
-945
-</td><td>
-945
-</td></tr>
-<tr><td style="text-align:left">
-R<sup>2</sup>
-</td><td></td><td>
-0.746
-</td></tr>
-<tr><td style="text-align:left">
-Adjusted R<sup>2</sup>
-</td><td></td><td>
-0.745
-</td></tr>
-<tr><td style="text-align:left">
-Log Likelihood
-</td><td>
-1,971.102
-</td><td></td></tr>
-<tr><td style="text-align:left">
-Akaike Inf. Crit.
-</td><td>
--3,926.203
-</td><td></td></tr>
-<tr><td style="text-align:left">
-Bayesian Inf. Crit.
-</td><td>
--3,887.394
-</td><td></td></tr>
-<tr><td style="text-align:left">
-Residual Std. Error
-</td><td></td><td>
-0.037 (df = 940)
-</td></tr>
-<tr><td style="text-align:left">
-F Statistic
-</td><td></td><td>
-688.940<sup>\*\*\*</sup> (df = 4; 940)
-</td></tr>
-<tr><td colspan="3" style="border-bottom: 1px solid black"></td></tr><tr><td style="text-align:left">
-<em>Note:</em>
-</td><td colspan="2" style="text-align:right">
-<sup>*</sup>p\<0.1; <sup>**</sup>p\<0.05; <sup>***</sup>p\<0.01
-</td></tr>
+<table>
+<colgroup>
+<col width="80%" />
+</colgroup>
+<tbody>
+<tr class="odd">
+<td align="left">I(date/365) -0.013 (0.009)</td>
+</tr>
+<tr class="even">
+<td align="left">date -0.0001*** (0.00002)</td>
+</tr>
+<tr class="odd">
+<td align="left">pctRep08 -0.001 -0.003*** (0.002) (0.001)</td>
+</tr>
+<tr class="even">
+<td align="left">pctRep12 -0.008*** -0.005*** (0.002) (0.001)</td>
+</tr>
+<tr class="odd">
+<td align="left">id 0.0004*** (0.0001)</td>
+</tr>
+<tr class="even">
+<td align="left">Constant 0.509*** 0.498*** (0.004) (0.003)</td>
+</tr>
+</tbody>
 </table>
+
+Observations 945 945
+R2 0.746
+Adjusted R2 0.745
+Log Likelihood 1,971.102
+Akaike Inf. Crit. -3,926.203
+Bayesian Inf. Crit. -3,887.394
+Residual Std. Error 0.037 (df = 940)
+F Statistic 688.940\*\*\* (df = 4; 940) ========================================================== Note: *p\<0.1; **p\<0.05; ***p\<0.01

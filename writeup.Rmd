@@ -1,0 +1,64 @@
+---
+title: "Simulation of Election Data with Miltilevel Model"
+author: "Jing Xie,Yuxin Zou"
+date: "12/5/2016"
+output:
+  md_document:
+    variant: markdown_github
+---
+
+#Summary
+
+We utilized data from 2008 and 2012 Election to predict the distribution of result for Election 2016 using simulation. A lot of the predictions of this election would only give an expectation of the final result. Some may also provide a probability of the certainty of their prediction. In this project, we tried to replicate the shape of  probability density function of the result. We first fitted the data with logistic model with mixed effect at both state level and individual level. Then we used R package {arm} simulated 100 alphas’ and betas’ based of the fitted model to obtain 100 simulated models. Then we fitted the historical data into the simulated models, which gives us 100 simulated results for each state. And finally, we used the 100 simulated results to call for each state, which helps us to achieve the final result --- the distribution of votes. 
+
+# Data
+The data we used contained background information of each poll, ,identified by their pollers’ id, along with information about voting percentage for Democratic and Republican Party, start and end date, sample size, number of dates till the election day(recorded as negative number), the historical final results (from year 1992 to 2012) for each state, etc.  
+For each state, there were several time points of polling. We treated each poll differently regard to their time points when fitting the overall model, and then view each poll independently (ignore time effect) when using simulation.
+
+There is a sneek peak of the data that we used.
+```{r,include=FALSE}
+rm(list=ls())
+library(foreign)
+election<- read.dta("~/Downloads/Election2016.dta")
+library(lme4)
+```
+
+```{r,echo=FALSE}
+head(election)
+```
+
+# Linear  model
+
+We first tried simple OLS model for our prediction. 
+
+$headothead = \beta_0 + \beta_1* date + \beta_2 * pctRep08+\beta_3 * pctRep12+\beta_4 *id + \epsilon$
+
+
+
+```{r, include = FALSE}
+library(arm)
+library(stargazer)
+lm <- lm(DemPctHead2Head~date+pctRep08+pctRep12+id,data = election)
+summary(lm)
+```
+
+# GLM model
+
+
+$headothead =  \beta_1*p08 + \beta_2*p12 +\alpha_{1i} * time +\alpha_{0i}+ \beta_0+\epsilon$
+
+
+$\alpha_{1i} \sim  N(\beta_{3i},\sigma_{\alpha_1})$
+
+$\alpha_{0i} \sim N(0,\sigma_{\alpha_0})$
+
+```{r, include=FALSE}
+fit.cov1 <- lmer(DemPctHead2Head~I(date/365)+pctRep08+pctRep12+(I(date/365)|id),data=election, subset=date> -250)
+summary(fit.cov1)
+```
+
+```{r, echo=FALSE,results = "asis"}
+stargazer(fit.cov1,lm, title="GLM Regression Results",type = "html")
+```
+
+

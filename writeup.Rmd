@@ -7,18 +7,20 @@ output: html_document
 
 #Summary
 
-We utilized data from 2008 and 2012 Election to predict the distribution of result for Election 2016 using simulation. A lot of the predictions of this election would only give an expectation of the final result. Some may also provide a probability of the certainty of their prediction. In this project, we tried to replicate the shape of  probability density function of the result. We first fitted the data with logistic model with mixed effect at both state level and individual level. Then we used R package {arm} simulated 100 alphas’ and betas’ based of the fitted model to obtain 100 simulated models. Then we fitted the historical data into the simulated models, which gives us 100 simulated results for each state. And finally, we used the 100 simulated results to call for each state, which helps us to achieve the final result --- the distribution of votes. 
+We utilized data from 2008 and 2012 Election to predict the distribution of result for Election 2016 using simulation. A lot of the predictions of this election would only give an expectation of the final result. Some may also provide a probability of the certainty of their prediction. In this project, we tried to replicate the shape of  probability density function of the result. We first fitted the data with logistic model with mixed effect at both state level and individual level. Then we used R package {arm} simulated 100 alphas’ and betas’ based of the fitted model to obtain 100 simulated models. Then we fitted the historical data into the simulated models, which gives us 100 simulated results for each state. And finally, we used the 100 simulated results to call for each state, which helps us to achieve the final result --- the distribution of votes. Even though the election result is not our model expect, by the end of the day, we believe it is the learning curve of this process that actaully matters.
 
 # Data
 The data we used contained background information of each poll, ,identified by their pollers’ id, along with information about voting percentage for Democratic and Republican Party, start and end date, sample size, number of dates till the election day(recorded as negative number), the historical final results (from year 1992 to 2012) for each state, etc.  
 For each state, there were several time points of polling. We treated each poll differently regard to their time points when fitting the overall model, and then view each poll independently (ignore time effect) when using simulation.
+
+### further explaination for each variable that is used.
 
 There is a sneek peak of the data that we used.
 ```{r,include=FALSE}
 rm(list=ls())
 library(foreign)
 election<- read.dta("~/Downloads/Election2016.dta")
-library(lme4)
+
 ```
 
 ```{r,echo=FALSE}
@@ -27,21 +29,17 @@ head(election)
 
 # Linear  model
 
-We first tried simple OLS model for our pred
-
-$headothead = \beta_0 + \beta_1* date + \beta_2 * pctRep08+\beta_3 * pctRep12+\beta_{4i} *id + \epsilon$
-
-
+We first tried simple OLS model for our prediction. We did a very simple OLS that inclues the election result from each state for the past two elections with fixed effect for each State. Also, we inlude the date of each poll that we believe might be affecting the actual result. 
 
 ```{r, include = FALSE}
-library(arm)
 library(stargazer)
+```
+
+```{r}
 lm <- lm(DemPctHead2Head~date+pctRep08+pctRep12+factor(id),data = election)
-summary(lm)
 ```
 
 # GLM model
-
 
 $headothead =  \beta_1*p08 + \beta_2*p12 +\alpha_{1i} * time +\alpha_{0i}+ \beta_0+\epsilon$
 
@@ -49,13 +47,80 @@ $\alpha_{1i} \sim N(\beta_{3i},\sigma_{\alpha_1})$
 
 $\alpha_{0i} \sim N(0,\sigma_{\alpha_0})$
 
-```{r, include=FALSE}
+For the mix effect model, we try to keep the model very simple as well. We only inlclude the polling date, election result form 12 and 08. Also, we imposed both fixed effect and ramdom effect on the intercept and the slope of date for each state. So that we would allow some flexibility for each individual state.
+
+We used the lme4 package from R.
+
+```{r, echo=FALSE}
+library(lme4)
 fit.cov1 <- lmer(DemPctHead2Head~I(date/365)+pctRep08+pctRep12+(I(date/365)|id),data=election, subset=date> -250)
 summary(fit.cov1)
 ```
+
+
 
 ```{r, echo=FALSE,results = "asis"}
 stargazer(fit.cov1,lm, title="GLM Regression Results",type = "html",omit = "factor*")
 ```
 
+# The Simulation
 
+We used the sim function form arm package to simulate the beta's from the mixed effect result. This function gives the simulation of betas based on the covariance matrix of the variables. 
+
+We simulated 1000 sets of betas in total. 
+```{r, include=FALSE}
+summary(fit.cov1)$vcov
+library(arm)
+noofsim <- 1000
+simulation<-sim(fit.cov1,n.sims = noofsim)
+## creat vector to work with
+fixedcoef<- simulation@fixef
+randcoef <-simulation@ranef$id
+date <-election$date/365
+rep08 <- election$pctRep08
+rep12<-election$pctRep12
+id <-election$id
+```
+
+Here is a sample of the simulation result that are generated
+
+Fixed effect
+```{r}
+head(fixedcoef)
+```
+random effect
+```{r}
+head(randcoef)
+```
+error term
+```{r}
+head(sigma.hat(simulation))
+```
+
+```{r,include=FALSE}
+## match random effect with ID
+## pass in the row, the id vecor , random effect matrix, and the int indicate slope or intercept
+getrand<- function(i,id,randcoef,effect){
+  rand <- c(0)
+  for(j in 1: length(id)){
+    rand[j] <- randcoef[i,id[j],effect]
+  }
+ rand
+}
+
+newid <-unique(id)
+newrep08<-unique(election$pctRep08) 
+newrep12<-unique(election$pctRep08)
+
+```
+
+
+```{r}
+## array of simulated data
+sim <- list()
+for(i in 1: noofsim){
+  intercept <-getrand(i,newid,randcoef,1)
+  sim[[i]]<- fixedcoef[i,1]+ fixedcoef[i,3]*newrep08 + fixedcoef[i,4]*newrep08 +intercept + rnorm(50,0,sigma[i])
+}
+
+```

@@ -1,13 +1,15 @@
 Summary
 =======
 
-We utilized data from 2008 and 2012 Election to predict the distribution of result for Election 2016 using simulation. A lot of the predictions of this election would only give an expectation of the final result. Some may also provide a probability of the certainty of their prediction. In this project, we tried to replicate the shape of probability density function of the result. We first fitted the data with logistic model with mixed effect at both state level and individual level. Then we used R package {arm} simulated 100 alphas’ and betas’ based of the fitted model to obtain 100 simulated models. Then we fitted the historical data into the simulated models, which gives us 100 simulated results for each state. And finally, we used the 100 simulated results to call for each state, which helps us to achieve the final result --- the distribution of votes.
+We utilized data from 2008 and 2012 Election to predict the distribution of result for Election 2016 using simulation. A lot of the predictions of this election would only give an expectation of the final result. Some may also provide a probability of the certainty of their prediction. In this project, we tried to replicate the shape of probability density function of the result. We first fitted the data with logistic model with mixed effect at both state level and individual level. Then we used R package {arm} simulated 100 alphas’ and betas’ based of the fitted model to obtain 100 simulated models. Then we fitted the historical data into the simulated models, which gives us 100 simulated results for each state. And finally, we used the 100 simulated results to call for each state, which helps us to achieve the final result --- the distribution of votes. Even though the election result is not our model expect, by the end of the day, we believe it is the learning curve of this process that actaully matters.
 
 Data
 ====
 
 The data we used contained background information of each poll, ,identified by their pollers’ id, along with information about voting percentage for Democratic and Republican Party, start and end date, sample size, number of dates till the election day(recorded as negative number), the historical final results (from year 1992 to 2012) for each state, etc.
 For each state, there were several time points of polling. We treated each poll differently regard to their time points when fitting the overall model, and then view each poll independently (ignore time effect) when using simulation.
+
+### further explaination for each variable that is used.
 
 There is a sneek peak of the data that we used.
 
@@ -50,7 +52,7 @@ There is a sneek peak of the data that we used.
 Linear model
 ============
 
-We first tried simple OLS model for our prediction. We did a very simple OLS with fixed effect for each State
+We first tried simple OLS model for our prediction. We did a very simple OLS that inclues the election result from each state for the past two elections with fixed effect for each State. Also, we inlude the date of each poll that we believe might be affecting the actual result.
 
 ``` {.r}
 lm <- lm(DemPctHead2Head~date+pctRep08+pctRep12+factor(id),data = election)
@@ -64,6 +66,14 @@ GLM model
 \(\alpha_{1i} \sim N(\beta_{3i},\sigma_{\alpha_1})\)
 
 \(\alpha_{0i} \sim N(0,\sigma_{\alpha_0})\)
+
+For the mix effect model, we try to keep the model very simple as well. We only inlclude the polling date, election result form 12 and 08. Also, we imposed both fixed effect and ramdom effect on the intercept and the slope of date for each state. So that we would allow some flexibility for each individual state.
+
+We used the lme4 package from R.
+
+    ## Warning: package 'lme4' was built under R version 3.2.5
+
+    ## Loading required package: Matrix
 
     ## Linear mixed model fit by REML ['lmerMod']
     ## Formula: 
@@ -228,3 +238,50 @@ F Statistic
 <sup>*</sup>p\<0.1; <sup>**</sup>p\<0.05; <sup>***</sup>p\<0.01
 </td></tr>
 </table>
+
+The Simulation
+==============
+
+We used the sim function form arm package to simulate the beta's from the mixed effect result. This function gives the simulation of betas based on the covariance matrix of the variables.
+
+We simulated 1000 sets of betas in total.
+
+Here is a sample of the simulation result that are generated
+
+Fixed effect
+
+``` {.r}
+head(fixedcoef)
+```
+
+    ##      (Intercept)  I(date/365)      pctRep08     pctRep12
+    ## [1,]   0.5176505 -0.004233702 -0.0038706142 -0.005276723
+    ## [2,]   0.5107366 -0.018059851  0.0034208902 -0.011605390
+    ## [3,]   0.5100672 -0.010340245 -0.0007266133 -0.007251664
+    ## [4,]   0.5072850 -0.010401858  0.0002620159 -0.008916394
+    ## [5,]   0.5058427 -0.013890195  0.0031477771 -0.011384992
+    ## [6,]   0.5097622 -0.001448891 -0.0036255488 -0.005433442
+
+random effect
+
+``` {.r}
+head(randcoef)
+```
+
+    ## [1] -0.04193675 -0.02130522 -0.03602497 -0.02803753 -0.01741091 -0.01803724
+
+error term
+
+``` {.r}
+head(sigma.hat(simulation))
+```
+
+    ## [1] 0.02622993 0.02675139 0.02754131 0.02746524 0.02789914 0.02698077
+
+Here we have the distribution result for each State.
+
+![](README_files/figure-markdown_github/unnamed-chunk-12-1.png) ![](README_files/figure-markdown_github/unnamed-chunk-12-2.png) ![](README_files/figure-markdown_github/unnamed-chunk-12-3.png)
+
+Then, we call for each state, and summed for total electoral result.
+
+![](README_files/figure-markdown_github/unnamed-chunk-14-1.png)

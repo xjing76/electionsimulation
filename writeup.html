@@ -60,11 +60,13 @@ if (window.hljs && document.readyState && document.readyState === "complete") {
 
 <div id="summary" class="section level1">
 <h1>Summary</h1>
-<p>We utilized data from 2008 and 2012 Election to predict the distribution of result for Election 2016 using simulation. A lot of the predictions of this election would only give an expectation of the final result. Some may also provide a probability of the certainty of their prediction. In this project, we tried to replicate the shape of probability density function of the result. We first fitted the data with logistic model with mixed effect at both state level and individual level. Then we used R package {arm} simulated 100 alphas’ and betas’ based of the fitted model to obtain 100 simulated models. Then we fitted the historical data into the simulated models, which gives us 100 simulated results for each state. And finally, we used the 100 simulated results to call for each state, which helps us to achieve the final result — the distribution of votes.</p>
+<p>We utilized data from 2008 and 2012 Election to predict the distribution of result for Election 2016 using simulation. A lot of the predictions of this election would only give an expectation of the final result. Some may also provide a probability of the certainty of their prediction. In this project, we tried to replicate the shape of probability density function of the result. We first fitted the data with logistic model with mixed effect at both state level and individual level. Then we used R package {arm} simulated 100 alphas’ and betas’ based of the fitted model to obtain 100 simulated models. Then we fitted the historical data into the simulated models, which gives us 100 simulated results for each state. And finally, we used the 100 simulated results to call for each state, which helps us to achieve the final result — the distribution of votes. Even though the election result is not our model expect, by the end of the day, we believe it is the learning curve of this process that actaully matters.</p>
 </div>
 <div id="data" class="section level1">
 <h1>Data</h1>
 <p>The data we used contained background information of each poll, ,identified by their pollers’ id, along with information about voting percentage for Democratic and Republican Party, start and end date, sample size, number of dates till the election day(recorded as negative number), the historical final results (from year 1992 to 2012) for each state, etc.<br />For each state, there were several time points of polling. We treated each poll differently regard to their time points when fitting the overall model, and then view each poll independently (ignore time effect) when using simulation.</p>
+<div id="further-explaination-for-each-variable-that-is-used." class="section level3">
+<h3>further explaination for each variable that is used.</h3>
 <p>There is a sneek peak of the data that we used.</p>
 <pre><code>##     state Clinton Trump Other Undecided poll_id              pollster
 ## 1 alabama      36    57    NA         7   25356 WashPost/SurveyMonkey
@@ -102,16 +104,53 @@ if (window.hljs && document.readyState && document.readyState === "complete") {
 ## 5 13.14419 11.52369 15.8972  blue
 ## 6 13.14419 11.52369 15.8972  blue</code></pre>
 </div>
+</div>
 <div id="linear-model" class="section level1">
 <h1>Linear model</h1>
-<p>We first tried simple OLS model for our pred</p>
-<p><span class="math">\(headothead = \beta_0 + \beta_1* date + \beta_2 * pctRep08+\beta_3 * pctRep12+\beta_{4i} *id + \epsilon\)</span></p>
+<p>We first tried simple OLS model for our prediction. We did a very simple OLS that inclues the election result from each state for the past two elections with fixed effect for each State. Also, we inlude the date of each poll that we believe might be affecting the actual result.</p>
+<pre class="r"><code>lm &lt;- lm(DemPctHead2Head~date+pctRep08+pctRep12+factor(id),data = election)</code></pre>
 </div>
 <div id="glm-model" class="section level1">
 <h1>GLM model</h1>
 <p><span class="math">\(headothead = \beta_1*p08 + \beta_2*p12 +\alpha_{1i} * time +\alpha_{0i}+ \beta_0+\epsilon\)</span></p>
 <p><span class="math">\(\alpha_{1i} \sim N(\beta_{3i},\sigma_{\alpha_1})\)</span></p>
 <p><span class="math">\(\alpha_{0i} \sim N(0,\sigma_{\alpha_0})\)</span></p>
+<p>For the mix effect model, we try to keep the model very simple as well. We only inlclude the polling date, election result form 12 and 08. Also, we imposed both fixed effect and ramdom effect on the intercept and the slope of date for each state. So that we would allow some flexibility for each individual state.</p>
+<p>We used the lme4 package from R.</p>
+<pre><code>## Warning: package 'lme4' was built under R version 3.2.5</code></pre>
+<pre><code>## Loading required package: Matrix</code></pre>
+<pre><code>## Linear mixed model fit by REML ['lmerMod']
+## Formula: 
+## DemPctHead2Head ~ I(date/365) + pctRep08 + pctRep12 + (I(date/365) |  
+##     id)
+##    Data: election
+##  Subset: date &gt; -250
+## 
+## REML criterion at convergence: -3942.2
+## 
+## Scaled residuals: 
+##     Min      1Q  Median      3Q     Max 
+## -4.0654 -0.6307 -0.0215  0.5632  3.5214 
+## 
+## Random effects:
+##  Groups   Name        Variance  Std.Dev. Corr 
+##  id       (Intercept) 0.0008007 0.02830       
+##           I(date/365) 0.0014540 0.03813  -0.01
+##  Residual             0.0007260 0.02695       
+## Number of obs: 945, groups:  id, 50
+## 
+## Fixed effects:
+##               Estimate Std. Error t value
+## (Intercept)  0.5091407  0.0043049  118.27
+## I(date/365) -0.0126199  0.0090939   -1.39
+## pctRep08    -0.0006595  0.0020353   -0.32
+## pctRep12    -0.0077717  0.0018749   -4.15
+## 
+## Correlation of Fixed Effects:
+##             (Intr) I(/365 pctR08
+## I(date/365)  0.174              
+## pctRep08     0.055  0.001       
+## pctRep12    -0.078 -0.001 -0.976</code></pre>
 <table style="text-align:center"><caption>
 <strong>GLM Regression Results</strong>
 </caption>
@@ -243,9 +282,27 @@ F Statistic
 </td></tr>
 </table>
 
-
-
-
+</div>
+<div id="the-simulation" class="section level1">
+<h1>The Simulation</h1>
+<p>We used the sim function form arm package to simulate the beta’s from the mixed effect result. This function gives the simulation of betas based on the covariance matrix of the variables.</p>
+<p>We simulated 1000 sets of betas in total.</p>
+<p>Here is a sample of the simulation result that are generated</p>
+<p>Fixed effect</p>
+<pre class="r"><code>head(fixedcoef)</code></pre>
+<pre><code>##      (Intercept)  I(date/365)      pctRep08     pctRep12
+## [1,]   0.5125411 -0.004170314 -0.0050666872 -0.003678198
+## [2,]   0.5052916 -0.025292610 -0.0014315586 -0.006502764
+## [3,]   0.4993359 -0.010303837 -0.0009834018 -0.006694357
+## [4,]   0.5022643 -0.013217878 -0.0033823221 -0.004940463
+## [5,]   0.5052624 -0.007531878  0.0003297072 -0.009019455
+## [6,]   0.5002167 -0.015440010 -0.0017556497 -0.006985813</code></pre>
+<p>random effect</p>
+<pre class="r"><code>head(randcoef)</code></pre>
+<pre><code>## [1] -0.01950142 -0.04728771 -0.06078901 -0.02290042 -0.02215777 -0.02454090</code></pre>
+<p>error term</p>
+<pre class="r"><code>head(sigma.hat(simulation))</code></pre>
+<pre><code>## [1] 0.02737576 0.02691144 0.02613312 0.02680631 0.02696021 0.02764965</code></pre>
 </div>
 
 
